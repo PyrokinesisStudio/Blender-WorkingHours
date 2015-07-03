@@ -87,22 +87,19 @@ class ThisWorkTimeMenu(bpy.types.Menu):
 	
 	def draw(self, context):
 		pref = context.user_preferences.addons[__name__].preferences
+		mode_names = (
+			('OBJECT', 'OBJECT_DATA'), ('EDIT_MESH', 'MESH_DATA'),
+			('EDIT_CURVE', 'CURVE_DATA'), ('EDIT_SURFACE', 'SURFACE_DATA'),
+			('EDIT_TEXT', 'FONT_DATA'), ('EDIT_ARMATURE', 'ARMATURE_DATA'),
+			('EDIT_METABALL', 'META_DATA'), ('EDIT_LATTICE', 'LATTICE_DATA'),
+			('POSE', 'POSE_HLT'), ('SCULPT', 'SCULPTMODE_HLT'),
+			('PAINT_WEIGHT', 'WPAINT_HLT'), ('PAINT_VERTEX', 'VPAINT_HLT'),
+			('PAINT_TEXTURE', 'TPAINT_HLT'), ('PARTICLE', 'PARTICLEMODE'))
 		self.layout.label(GetTimeString(pref.ALL), icon='TIME')
 		self.layout.separator()
-		self.layout.label(GetTimeString(pref.OBJECT), icon='OBJECT_DATA')
-		self.layout.label(GetTimeString(pref.EDIT_MESH), icon='MESH_DATA')
-		self.layout.label(GetTimeString(pref.EDIT_CURVE), icon='CURVE_DATA')
-		self.layout.label(GetTimeString(pref.EDIT_SURFACE), icon='SURFACE_DATA')
-		self.layout.label(GetTimeString(pref.EDIT_TEXT), icon='FONT_DATA')
-		self.layout.label(GetTimeString(pref.EDIT_ARMATURE), icon='ARMATURE_DATA')
-		self.layout.label(GetTimeString(pref.EDIT_METABALL), icon='META_DATA')
-		self.layout.label(GetTimeString(pref.EDIT_LATTICE), icon='LATTICE_DATA')
-		self.layout.label(GetTimeString(pref.POSE), icon='POSE_HLT')
-		self.layout.label(GetTimeString(pref.SCULPT), icon='SCULPTMODE_HLT')
-		self.layout.label(GetTimeString(pref.PAINT_WEIGHT), icon='WPAINT_HLT')
-		self.layout.label(GetTimeString(pref.PAINT_VERTEX), icon='VPAINT_HLT')
-		self.layout.label(GetTimeString(pref.PAINT_TEXTURE), icon='TPAINT_HLT')
-		self.layout.label(GetTimeString(pref.PARTICLE), icon='PARTICLEMODE')
+		for mode, icon in mode_names:
+			text = GetTimeString(pref.__getattribute__(mode))
+			self.layout.label(text, icon=icon)
 		self.layout.separator()
 		self.layout.label(GetTimeString(GetTime() - pref.ALL, is_minus=True), icon='CANCEL')
 
@@ -111,26 +108,18 @@ class ThisFileWorkTimeMenu(bpy.types.Menu):
 	bl_label = "ThisFileWork"
 	
 	def draw(self, context):
+		config = GetConfig()
 		blend_path = bpy.data.filepath
 		if (blend_path == ""):
 			blend_path = 'NoFile'
 		mode_names = (
-			('OBJECT', 'OBJECT_DATA'),
-			('EDIT_MESH', 'MESH_DATA'),
-			('EDIT_CURVE', 'CURVE_DATA'),
-			('EDIT_SURFACE', 'SURFACE_DATA'),
-			('EDIT_TEXT', 'FONT_DATA'),
-			('EDIT_ARMATURE', 'ARMATURE_DATA'),
-			('EDIT_METABALL', 'META_DATA'),
-			('EDIT_LATTICE', 'LATTICE_DATA'),
-			('POSE', 'POSE_HLT'),
-			('SCULPT', 'SCULPTMODE_HLT'),
-			('PAINT_WEIGHT', 'WPAINT_HLT'),
-			('PAINT_VERTEX', 'VPAINT_HLT'),
-			('PAINT_TEXTURE', 'TPAINT_HLT'),
-			('PARTICLE', 'PARTICLEMODE'),
-			)
-		config = GetConfig()
+			('OBJECT', 'OBJECT_DATA'), ('EDIT_MESH', 'MESH_DATA'),
+			('EDIT_CURVE', 'CURVE_DATA'), ('EDIT_SURFACE', 'SURFACE_DATA'),
+			('EDIT_TEXT', 'FONT_DATA'), ('EDIT_ARMATURE', 'ARMATURE_DATA'),
+			('EDIT_METABALL', 'META_DATA'), ('EDIT_LATTICE', 'LATTICE_DATA'),
+			('POSE', 'POSE_HLT'), ('SCULPT', 'SCULPTMODE_HLT'),
+			('PAINT_WEIGHT', 'WPAINT_HLT'), ('PAINT_VERTEX', 'VPAINT_HLT'),
+			('PAINT_TEXTURE', 'TPAINT_HLT'), ('PARTICLE', 'PARTICLEMODE'))
 		text = GetTimeString(float(config.get(blend_path, 'all', fallback='0.0')))
 		self.layout.label(text, icon='TIME')
 		self.layout.separator()
@@ -144,21 +133,13 @@ class AllWorkTimeMenu(bpy.types.Menu):
 	
 	def draw(self, context):
 		mode_names = (
-			('OBJECT', 'OBJECT_DATA'),
-			('EDIT_MESH', 'MESH_DATA'),
-			('EDIT_CURVE', 'CURVE_DATA'),
-			('EDIT_SURFACE', 'SURFACE_DATA'),
-			('EDIT_TEXT', 'FONT_DATA'),
-			('EDIT_ARMATURE', 'ARMATURE_DATA'),
-			('EDIT_METABALL', 'META_DATA'),
-			('EDIT_LATTICE', 'LATTICE_DATA'),
-			('POSE', 'POSE_HLT'),
-			('SCULPT', 'SCULPTMODE_HLT'),
-			('PAINT_WEIGHT', 'WPAINT_HLT'),
-			('PAINT_VERTEX', 'VPAINT_HLT'),
-			('PAINT_TEXTURE', 'TPAINT_HLT'),
-			('PARTICLE', 'PARTICLEMODE'),
-			)
+			('OBJECT', 'OBJECT_DATA'), ('EDIT_MESH', 'MESH_DATA'),
+			('EDIT_CURVE', 'CURVE_DATA'), ('EDIT_SURFACE', 'SURFACE_DATA'),
+			('EDIT_TEXT', 'FONT_DATA'), ('EDIT_ARMATURE', 'ARMATURE_DATA'),
+			('EDIT_METABALL', 'META_DATA'), ('EDIT_LATTICE', 'LATTICE_DATA'),
+			('POSE', 'POSE_HLT'), ('SCULPT', 'SCULPTMODE_HLT'),
+			('PAINT_WEIGHT', 'WPAINT_HLT'), ('PAINT_VERTEX', 'VPAINT_HLT'),
+			('PAINT_TEXTURE', 'TPAINT_HLT'), ('PARTICLE', 'PARTICLEMODE'))
 		config = GetConfig()
 		text = GetTimeString(float(config.get('ALL', 'all', fallback='0.0')))
 		self.layout.label(text, icon='TIME')
