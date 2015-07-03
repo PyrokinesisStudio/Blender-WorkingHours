@@ -14,6 +14,9 @@ bl_info = {
 	"category" : "System"
 }
 
+def GetTime():
+	return time.clock()
+
 def GetIniPath():
 	ini_name = os.path.splitext(bpy.path.basename(__file__))[0] + ".ini"
 	base_dir = os.path.dirname(__file__)
@@ -97,7 +100,7 @@ class ThisWorkTimeMenu(bpy.types.Menu):
 		self.layout.label(GetTimeString(pref.PAINT_TEXTURE), icon='TPAINT_HLT')
 		self.layout.label(GetTimeString(pref.PARTICLE), icon='PARTICLEMODE')
 		self.layout.separator()
-		self.layout.label(GetTimeString(time.clock() - pref.ALL, is_minus=True), icon='CANCEL')
+		self.layout.label(GetTimeString(GetTime() - pref.ALL, is_minus=True), icon='CANCEL')
 
 class ThisFileWorkTimeMenu(bpy.types.Menu):
 	bl_idname = 'INFO_HT_header_this_file_work_time'
@@ -173,7 +176,7 @@ def header_func(self, context):
 	if ('ALL' not in config):
 		config['ALL'] = {}
 	
-	time_diff = time.clock() - pref.pre_time
+	time_diff = GetTime() - pref.pre_time
 	if (time_diff < 0.0):
 		time_diff = 0.0
 		pref.ALL = 0.0
@@ -193,7 +196,7 @@ def header_func(self, context):
 		
 		time_mode = float(config.get('ALL', context.mode, fallback='0.0'))
 		config['ALL'][context.mode] = str(time_mode + time_diff)
-	pref.pre_time = time.clock()
+	pref.pre_time = GetTime()
 	
 	row = self.layout.row(align=True)
 	row.menu(ThisWorkTimeMenu.bl_idname, icon='TIME', text="  ThisWork " + GetTimeString(pref.ALL))
@@ -208,8 +211,9 @@ def header_func(self, context):
 def register():
 	bpy.utils.register_module(__name__)
 	pref = bpy.context.user_preferences.addons[__name__].preferences
-	for value_name in ['pre_time', 'ALL', 'OBJECT', 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT', 'EDIT_ARMATURE', 'EDIT_METABALL', 'EDIT_LATTICE', 'POSE', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE']:
+	for value_name in ['ALL', 'OBJECT', 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT', 'EDIT_ARMATURE', 'EDIT_METABALL', 'EDIT_LATTICE', 'POSE', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE']:
 		pref.__setattr__(value_name, 0.0)
+	pref.pre_time = GetTime()
 	bpy.types.INFO_HT_header.append(header_func)
 	bpy.app.handlers.load_post.append(load_handler)
 
