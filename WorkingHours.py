@@ -15,7 +15,7 @@ bl_info = {
 }
 
 def GetTime():
-	return time.clock()
+	return time.perf_counter()
 
 def GetIniPath():
 	ini_name = os.path.splitext(bpy.path.basename(__file__))[0] + ".ini"
