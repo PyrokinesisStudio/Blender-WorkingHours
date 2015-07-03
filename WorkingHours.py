@@ -27,12 +27,15 @@ def GetConfig():
 	config.read(GetIniPath())
 	return config
 
-@persistent
-def load_handler(scene):
+def ResetPreferences():
 	pref = bpy.context.user_preferences.addons[__name__].preferences
 	for value_name in ['ALL', 'OBJECT', 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT', 'EDIT_ARMATURE', 'EDIT_METABALL', 'EDIT_LATTICE', 'POSE', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE']:
 		pref.__setattr__(value_name, 0.0)
 	pref.pre_time = GetTime()
+
+@persistent
+def load_handler(scene):
+	ResetPreferences()
 
 class AddonPreferences(bpy.types.AddonPreferences):
 	bl_idname = __name__
@@ -211,10 +214,7 @@ def header_func(self, context):
 
 def register():
 	bpy.utils.register_module(__name__)
-	pref = bpy.context.user_preferences.addons[__name__].preferences
-	for value_name in ['ALL', 'OBJECT', 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT', 'EDIT_ARMATURE', 'EDIT_METABALL', 'EDIT_LATTICE', 'POSE', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE']:
-		pref.__setattr__(value_name, 0.0)
-	pref.pre_time = GetTime()
+	ResetPreferences()
 	bpy.types.INFO_HT_header.append(header_func)
 	bpy.app.handlers.load_post.append(load_handler)
 
