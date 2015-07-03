@@ -45,7 +45,9 @@ def GetConfig():
 
 def ResetPreferences():
 	pref = bpy.context.user_preferences.addons[__name__].preferences
-	for value_name in ['ALL', 'OBJECT', 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT', 'EDIT_ARMATURE', 'EDIT_METABALL', 'EDIT_LATTICE', 'POSE', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE']:
+	value_names = ['ALL', 'OBJECT', 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT', 'EDIT_ARMATURE',
+		'EDIT_METABALL', 'EDIT_LATTICE', 'POSE', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE']
+	for value_name in value_names:
 		pref.__setattr__(value_name, 0.0)
 	pref.pre_time = GetTime()
 
@@ -56,7 +58,11 @@ def load_handler(scene):
 class AddonPreferences(bpy.types.AddonPreferences):
 	bl_idname = __name__
 	
-	ignore_time_interval = bpy.props.FloatProperty(name="Ignore Time Interval (Second)", default=60, min=1, max=9999, soft_min=1, soft_max=9999, step=3, precision=2)
+	ignore_time_interval = bpy.props.FloatProperty(name="Ignore Time Interval (Second)", default=60, min=1, max=9999, soft_min=1, soft_max=9999)
+	
+	show_this_work_time = bpy.props.BoolProperty(name="Show ThisWorkTime", default=True)
+	this_file_work_time = bpy.props.BoolProperty(name="Show ThisFileWorkTime", default=True)
+	all_work_time = bpy.props.BoolProperty(name="Show AllWorkTime", default=True)
 	
 	pre_time = bpy.props.FloatProperty(default=0.0)
 	ALL = bpy.props.FloatProperty(default=0.0)
@@ -77,6 +83,10 @@ class AddonPreferences(bpy.types.AddonPreferences):
 	PARTICLE = bpy.props.FloatProperty(default=0.0)
 	
 	def draw(self, context):
+		row = self.layout.row()
+		row.prop(self, 'show_this_work_time')
+		row.prop(self, 'this_file_work_time')
+		row.prop(self, 'all_work_time')
 		self.layout.prop(self, 'ignore_time_interval')
 
 def GetTimeString(raw_sec, is_minus=False):
@@ -178,9 +188,12 @@ def header_func(self, context):
 	pref.pre_time = GetTime()
 	
 	row = self.layout.row(align=True)
-	row.menu(ThisWorkTimeMenu.bl_idname, icon='TIME', text="  ThisWork " + GetTimeString(pref.ALL))
-	row.menu(ThisFileWorkTimeMenu.bl_idname, icon='FILE_BLEND', text="  ThisFile " + GetTimeString(this_file_time))
-	row.menu(AllWorkTimeMenu.bl_idname, icon='BLENDER', text="  AllWork " + GetTimeString(all_time))
+	if (pref.show_this_work_time):
+		row.menu(ThisWorkTimeMenu.bl_idname, icon='TIME', text="  ThisWork " + GetTimeString(pref.ALL))
+	if (pref.this_file_work_time):
+		row.menu(ThisFileWorkTimeMenu.bl_idname, icon='FILE_BLEND', text="  ThisFile " + GetTimeString(this_file_time))
+	if (pref.all_work_time):
+		row.menu(AllWorkTimeMenu.bl_idname, icon='BLENDER', text="  AllWork " + GetTimeString(all_time))
 	
 	config['ALL']['all'] = str(all_time)
 	config[blend_path]['all'] = str(this_file_time)
