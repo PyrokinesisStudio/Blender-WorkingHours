@@ -30,8 +30,9 @@ def GetConfig():
 @persistent
 def load_handler(scene):
 	pref = bpy.context.user_preferences.addons[__name__].preferences
-	for value_name in ['pre_time', 'ALL', 'OBJECT', 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT', 'EDIT_ARMATURE', 'EDIT_METABALL', 'EDIT_LATTICE', 'POSE', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE']:
+	for value_name in ['ALL', 'OBJECT', 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT', 'EDIT_ARMATURE', 'EDIT_METABALL', 'EDIT_LATTICE', 'POSE', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE']:
 		pref.__setattr__(value_name, 0.0)
+	pref.pre_time = GetTime()
 
 class AddonPreferences(bpy.types.AddonPreferences):
 	bl_idname = __name__
