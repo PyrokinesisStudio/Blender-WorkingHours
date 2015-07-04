@@ -59,8 +59,8 @@ def ResetPreferences():
 
 class DeleteWorkingHoursData(bpy.types.Operator):
 	bl_idname = 'wm.delete_working_hours_data'
-	bl_label = "作業時間データを削除"
-	bl_description = "記録されている作業時間を全て削除します"
+	bl_label = "Delete WorkingHours Savedata"
+	bl_description = "Delete WorkingHours Savedata?"
 	bl_options = {'REGISTER'}
 	
 	def invoke(self, context, event):
