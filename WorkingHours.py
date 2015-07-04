@@ -34,10 +34,9 @@ def GetTime():
 	return time.perf_counter()
 
 def GetBlendPathSection():
-	blend_path = bpy.data.filepath
-	if (blend_path == ""):
-		blend_path = 'NoFile'
-	return blend_path
+	if (bpy.data.filepath == ""):
+		return 'NoFile'
+	return bpy.data.filepath
 
 def GetIniPath():
 	ini_name = os.path.splitext(bpy.path.basename(__file__))[0] + ".ini"
@@ -130,7 +129,7 @@ def GetTimeString(raw_sec, is_minus=False):
 
 class ThisWorkTimeMenu(bpy.types.Menu):
 	bl_idname = 'INFO_HT_header_this_work_time'
-	bl_label = "ThisWork"
+	bl_label = ""
 	
 	def draw(self, context):
 		global MODE_NAMES_AND_ICONS
@@ -145,7 +144,7 @@ class ThisWorkTimeMenu(bpy.types.Menu):
 
 class ThisFileWorkTimeMenu(bpy.types.Menu):
 	bl_idname = 'INFO_HT_header_this_file_work_time'
-	bl_label = "ThisFileWork"
+	bl_label = ""
 	
 	def draw(self, context):
 		global MODE_NAMES_AND_ICONS
@@ -160,7 +159,7 @@ class ThisFileWorkTimeMenu(bpy.types.Menu):
 
 class AllWorkTimeMenu(bpy.types.Menu):
 	bl_idname = 'INFO_HT_header_all_work_time'
-	bl_label = "AllWork"
+	bl_label = ""
 	
 	def draw(self, context):
 		config = GetConfig()
