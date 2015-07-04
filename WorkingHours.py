@@ -9,8 +9,8 @@ bl_info = {
 	"location" : "Upper right",
 	"description" : "Record working hours of Blender",
 	"warning" : "",
-	"wiki_url" : "",
-	"tracker_url" : "",
+	"wiki_url" : "http://github.com/saidenka/Blender-WorkingHours",
+	"tracker_url" : "http://github.com/saidenka/Blender-WorkingHours/issues",
 	"category" : "System"
 }
 
