@@ -1,6 +1,10 @@
 import bpy, os, time, configparser
 from bpy.app.handlers import persistent
 
+############
+# VARIABLE #
+############
+
 bl_info = {
 	"name" : "Working Hours",
 	"author" : "Saidenka",
@@ -30,13 +34,17 @@ MODE_NAMES_AND_ICONS = (
 	('PAINT_TEXTURE', 'TPAINT_HLT'),
 	('PARTICLE', 'PARTICLEMODE'))
 
-def GetTime():
-	return time.perf_counter()
+#############
+# FUNCTIONS #
+#############
 
-def GetBlendPathSection():
-	if (bpy.data.filepath == ""):
-		return 'NoFile'
-	return bpy.data.filepath
+def ResetPreferences():
+	pref = bpy.context.user_preferences.addons[__name__].preferences
+	value_names = ['ALL', 'OBJECT', 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT', 'EDIT_ARMATURE',
+		'EDIT_METABALL', 'EDIT_LATTICE', 'POSE', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE']
+	for value_name in value_names:
+		pref.__setattr__(value_name, 0.0)
+	pref.pre_time = GetTime()
 
 def GetIniPath():
 	ini_name = os.path.splitext(bpy.path.basename(__file__))[0] + ".ini"
@@ -48,31 +56,39 @@ def GetConfig():
 	config.read(GetIniPath())
 	return config
 
-def ResetPreferences():
-	pref = bpy.context.user_preferences.addons[__name__].preferences
-	value_names = ['ALL', 'OBJECT', 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT', 'EDIT_ARMATURE',
-		'EDIT_METABALL', 'EDIT_LATTICE', 'POSE', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE']
-	for value_name in value_names:
-		pref.__setattr__(value_name, 0.0)
-	pref.pre_time = GetTime()
+def GetBlendPathSection():
+	if (bpy.data.filepath == ""):
+		return 'NoFile'
+	return bpy.data.filepath
 
-class DeleteWorkingHoursData(bpy.types.Operator):
-	bl_idname = 'wm.delete_working_hours_data'
-	bl_label = "Delete WorkingHours Savedata"
-	bl_description = "Delete WorkingHours Savedata?"
-	bl_options = {'REGISTER'}
-	
-	def invoke(self, context, event):
-		return context.window_manager.invoke_props_dialog(self)
-	
-	def execute(self, context):
-		os.remove(GetIniPath())
-		ResetPreferences()
-		return {'FINISHED'}
+def GetTime():
+	return time.perf_counter()
 
 @persistent
 def load_handler(scene):
 	ResetPreferences()
+
+def GetTimeString(raw_sec, is_minus=False):
+	sec = round(raw_sec)
+	if (sec == 0):
+		return "..."
+	minus = ""
+	if (is_minus):
+		minus = "-"
+	if (60 <= sec):
+		min = int(sec / 60)
+		if (60 <= min):
+			hour = int(sec / 60 / 60)
+			min = int((sec / 60) % 60)
+			sec = int(sec % 60)
+			return minus + str(hour) + "h" + str(min) + "m" + str(sec) + "s"
+		sec = int(sec % 60)
+		return minus + str(min) + "m" + str(sec) + "s"
+	return minus + str(sec) + "s"
+
+###############
+# PREFERENCES #
+###############
 
 class AddonPreferences(bpy.types.AddonPreferences):
 	bl_idname = __name__
@@ -109,23 +125,27 @@ class AddonPreferences(bpy.types.AddonPreferences):
 			row.prop(self, value_name)
 		self.layout.prop(self, 'ignore_time_interval')
 
-def GetTimeString(raw_sec, is_minus=False):
-	sec = round(raw_sec)
-	if (sec == 0):
-		return "..."
-	minus = ""
-	if (is_minus):
-		minus = "-"
-	if (60 <= sec):
-		min = int(sec / 60)
-		if (60 <= min):
-			hour = int(sec / 60 / 60)
-			min = int((sec / 60) % 60)
-			sec = int(sec % 60)
-			return minus + str(hour) + "h" + str(min) + "m" + str(sec) + "s"
-		sec = int(sec % 60)
-		return minus + str(min) + "m" + str(sec) + "s"
-	return minus + str(sec) + "s"
+############
+# OPERATOR #
+############
+
+class DeleteWorkingHoursData(bpy.types.Operator):
+	bl_idname = 'wm.delete_working_hours_data'
+	bl_label = "Delete WorkingHours Savedata"
+	bl_description = "Delete WorkingHours Savedata?"
+	bl_options = {'REGISTER'}
+	
+	def invoke(self, context, event):
+		return context.window_manager.invoke_props_dialog(self)
+	
+	def execute(self, context):
+		os.remove(GetIniPath())
+		ResetPreferences()
+		return {'FINISHED'}
+
+########
+# MENU #
+########
 
 class ThisWorkTimeMenu(bpy.types.Menu):
 	bl_idname = 'INFO_HT_header_this_work_time'
@@ -169,6 +189,10 @@ class AllWorkTimeMenu(bpy.types.Menu):
 		for mode, icon in MODE_NAMES_AND_ICONS:
 			text = GetTimeString(float(config.get('ALL', mode, fallback='0.0')))
 			self.layout.label(text, icon=icon)
+
+##########
+# LAYOUT #
+##########
 
 def header_func(self, context):
 	pref = context.user_preferences.addons[__name__].preferences
@@ -227,6 +251,10 @@ def header_func(self, context):
 	config[blend_path]['all'] = str(this_file_time)
 	with open(GetIniPath(), 'w') as file:
 		config.write(file)
+
+#############
+# REGISTERS #
+#############
 
 def register():
 	bpy.utils.register_module(__name__)
