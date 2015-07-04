@@ -51,6 +51,20 @@ def ResetPreferences():
 		pref.__setattr__(value_name, 0.0)
 	pref.pre_time = GetTime()
 
+class DeleteWorkingHoursData(bpy.types.Operator):
+	bl_idname = 'wm.delete_working_hours_data'
+	bl_label = "作業時間データを削除"
+	bl_description = "記録されている作業時間を全て削除します"
+	bl_options = {'REGISTER'}
+	
+	def invoke(self, context, event):
+		return context.window_manager.invoke_props_dialog(self)
+	
+	def execute(self, context):
+		os.remove(GetIniPath())
+		ResetPreferences()
+		return {'FINISHED'}
+
 @persistent
 def load_handler(scene):
 	ResetPreferences()
@@ -212,6 +226,9 @@ def header_func(self, context):
 			row.operator('wm.context_toggle', icon='X', text="").data_path = path + 'all_work_time'
 		else:
 			row.operator('wm.context_toggle', icon='RESTRICT_VIEW_OFF', text="").data_path = path + 'all_work_time'
+		
+		row.operator(DeleteWorkingHoursData.bl_idname, icon='CANCEL', text="")
+		
 		row.operator('wm.context_toggle', icon='TRIA_LEFT', text="").data_path = path + 'show_toggle_buttons'
 	else:
 		row.operator('wm.context_toggle', icon='ARROW_LEFTRIGHT', text="").data_path = path + 'show_toggle_buttons'
