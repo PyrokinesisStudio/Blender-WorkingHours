@@ -106,9 +106,8 @@ class AddonPreferences(bpy.types.AddonPreferences):
 	def draw(self, context):
 		self.layout.prop(self, 'show_toggle_buttons')
 		row = self.layout.row()
-		row.prop(self, 'show_this_work_time')
-		row.prop(self, 'this_file_work_time')
-		row.prop(self, 'all_work_time')
+		for value_name in ['show_this_work_time', 'this_file_work_time', 'all_work_time']:
+			row.prop(self, value_name)
 		self.layout.prop(self, 'ignore_time_interval')
 
 def GetTimeString(raw_sec, is_minus=False):
