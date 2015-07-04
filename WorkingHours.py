@@ -33,6 +33,12 @@ MODE_NAMES_AND_ICONS = (
 def GetTime():
 	return time.perf_counter()
 
+def GetBlendPathSection():
+	blend_path = bpy.data.filepath
+	if (blend_path == ""):
+		blend_path = 'NoFile'
+	return blend_path
+
 def GetIniPath():
 	ini_name = os.path.splitext(bpy.path.basename(__file__))[0] + ".ini"
 	base_dir = os.path.dirname(__file__)
@@ -145,9 +151,7 @@ class ThisFileWorkTimeMenu(bpy.types.Menu):
 	def draw(self, context):
 		global MODE_NAMES_AND_ICONS
 		config = GetConfig()
-		blend_path = bpy.data.filepath
-		if (blend_path == ""):
-			blend_path = 'NoFile'
+		blend_path = GetBlendPathSection()
 		text = GetTimeString(float(config.get(blend_path, 'all', fallback='0.0')))
 		self.layout.label(text, icon='TIME')
 		self.layout.separator()
@@ -171,10 +175,7 @@ class AllWorkTimeMenu(bpy.types.Menu):
 def header_func(self, context):
 	pref = context.user_preferences.addons[__name__].preferences
 	config = GetConfig()
-	
-	blend_path = bpy.data.filepath
-	if (blend_path == ""):
-		blend_path = 'NoFile'
+	blend_path = GetBlendPathSection()
 	
 	if (blend_path not in config):
 		config[blend_path] = {}
@@ -183,8 +184,7 @@ def header_func(self, context):
 	
 	time_diff = GetTime() - pref.pre_time
 	if (time_diff < 0.0):
-		time_diff = 0.0
-		pref.ALL = 0.0
+		time_diff, pref.ALL = 0.0, 0.0
 	
 	all_time = float(config.get('ALL', 'all', fallback='0.0'))
 	this_file_time = float(config.get(blend_path, 'all', fallback='0.0'))
@@ -214,19 +214,11 @@ def header_func(self, context):
 	row = self.layout.row(align=True)
 	path = 'user_preferences.addons["' + __name__ + '"].preferences.'
 	if (pref.show_toggle_buttons):
-		if (pref.show_this_work_time):
-			row.operator('wm.context_toggle', icon='X', text="").data_path = path + 'show_this_work_time'
-		else:
-			row.operator('wm.context_toggle', icon='RESTRICT_VIEW_OFF', text="").data_path = path + 'show_this_work_time'
-		if (pref.this_file_work_time):
-			row.operator('wm.context_toggle', icon='X', text="").data_path = path + 'this_file_work_time'
-		else:
-			row.operator('wm.context_toggle', icon='RESTRICT_VIEW_OFF', text="").data_path = path + 'this_file_work_time'
-		if (pref.all_work_time):
-			row.operator('wm.context_toggle', icon='X', text="").data_path = path + 'all_work_time'
-		else:
-			row.operator('wm.context_toggle', icon='RESTRICT_VIEW_OFF', text="").data_path = path + 'all_work_time'
-		
+		for value_name in ['show_this_work_time', 'this_file_work_time', 'all_work_time']:
+			if (pref.__getattribute__(value_name)):
+				row.operator('wm.context_toggle', icon='X', text="").data_path = path + value_name
+			else:
+				row.operator('wm.context_toggle', icon='RESTRICT_VIEW_OFF', text="").data_path = path + value_name
 		row.operator(DeleteWorkingHoursData.bl_idname, icon='CANCEL', text="")
 		
 		row.operator('wm.context_toggle', icon='TRIA_LEFT', text="").data_path = path + 'show_toggle_buttons'
