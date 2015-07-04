@@ -60,7 +60,7 @@ class AddonPreferences(bpy.types.AddonPreferences):
 	
 	ignore_time_interval = bpy.props.FloatProperty(name="Ignore Time Interval (Second)", default=60, min=1, max=9999, soft_min=1, soft_max=9999)
 	
-	show_toggle_buttons = bpy.props.BoolProperty(name="Toggle Buttons", default=True)
+	show_toggle_buttons = bpy.props.BoolProperty(name="Toggle Buttons", default=False)
 	show_this_work_time = bpy.props.BoolProperty(name="Show ThisWorkTime", default=True)
 	this_file_work_time = bpy.props.BoolProperty(name="Show ThisFileWorkTime", default=True)
 	all_work_time = bpy.props.BoolProperty(name="Show AllWorkTime", default=True)
@@ -191,15 +191,15 @@ def header_func(self, context):
 	
 	row = self.layout.row(align=True)
 	if (pref.show_this_work_time):
-		row.menu(ThisWorkTimeMenu.bl_idname, icon='TIME', text="  ThisWork " + GetTimeString(pref.ALL))
+		row.menu(ThisWorkTimeMenu.bl_idname, icon='TIME', text="  New " + GetTimeString(pref.ALL))
 	if (pref.this_file_work_time):
-		row.menu(ThisFileWorkTimeMenu.bl_idname, icon='FILE_BLEND', text="  ThisFile " + GetTimeString(this_file_time))
+		row.menu(ThisFileWorkTimeMenu.bl_idname, icon='FILE_BLEND', text="  File " + GetTimeString(this_file_time))
 	if (pref.all_work_time):
-		row.menu(AllWorkTimeMenu.bl_idname, icon='BLENDER', text="  AllWork " + GetTimeString(all_time))
+		row.menu(AllWorkTimeMenu.bl_idname, icon='BLENDER', text="  All " + GetTimeString(all_time))
 	
+	row = self.layout.row(align=True)
+	path = 'user_preferences.addons["' + __name__ + '"].preferences.'
 	if (pref.show_toggle_buttons):
-		row = self.layout.row(align=True)
-		path = 'user_preferences.addons["' + __name__ + '"].preferences.'
 		if (pref.show_this_work_time):
 			row.operator('wm.context_toggle', icon='X', text="").data_path = path + 'show_this_work_time'
 		else:
@@ -212,6 +212,9 @@ def header_func(self, context):
 			row.operator('wm.context_toggle', icon='X', text="").data_path = path + 'all_work_time'
 		else:
 			row.operator('wm.context_toggle', icon='RESTRICT_VIEW_OFF', text="").data_path = path + 'all_work_time'
+		row.operator('wm.context_toggle', icon='TRIA_LEFT', text="").data_path = path + 'show_toggle_buttons'
+	else:
+		row.operator('wm.context_toggle', icon='ARROW_LEFTRIGHT', text="").data_path = path + 'show_toggle_buttons'
 	
 	config['ALL']['all'] = str(all_time)
 	config[blend_path]['all'] = str(this_file_time)
