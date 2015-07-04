@@ -95,10 +95,10 @@ class AddonPreferences(bpy.types.AddonPreferences):
 	
 	ignore_time_interval = bpy.props.FloatProperty(name="Ignore Time Interval (Second)", default=60, min=1, max=9999, soft_min=1, soft_max=9999)
 	
-	show_toggle_buttons = bpy.props.BoolProperty(name="Toggle Buttons", default=False)
-	show_this_work_time = bpy.props.BoolProperty(name="Show ThisWorkTime", default=True)
-	this_file_work_time = bpy.props.BoolProperty(name="Show ThisFileWorkTime", default=True)
-	all_work_time = bpy.props.BoolProperty(name="Show AllWorkTime", default=True)
+	show_toggle_buttons = bpy.props.BoolProperty(name="Expand Buttons", default=False)
+	show_this_work_time = bpy.props.BoolProperty(name="Show New Time", default=True)
+	this_file_work_time = bpy.props.BoolProperty(name="Show File Time", default=True)
+	all_work_time = bpy.props.BoolProperty(name="Show All Time", default=True)
 	
 	pre_time = bpy.props.FloatProperty(default=0.0)
 	ALL = bpy.props.FloatProperty(default=0.0)
