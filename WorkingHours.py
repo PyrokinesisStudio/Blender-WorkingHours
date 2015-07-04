@@ -60,6 +60,7 @@ class AddonPreferences(bpy.types.AddonPreferences):
 	
 	ignore_time_interval = bpy.props.FloatProperty(name="Ignore Time Interval (Second)", default=60, min=1, max=9999, soft_min=1, soft_max=9999)
 	
+	show_toggle_buttons = bpy.props.BoolProperty(name="Toggle Buttons", default=True)
 	show_this_work_time = bpy.props.BoolProperty(name="Show ThisWorkTime", default=True)
 	this_file_work_time = bpy.props.BoolProperty(name="Show ThisFileWorkTime", default=True)
 	all_work_time = bpy.props.BoolProperty(name="Show AllWorkTime", default=True)
@@ -83,6 +84,7 @@ class AddonPreferences(bpy.types.AddonPreferences):
 	PARTICLE = bpy.props.FloatProperty(default=0.0)
 	
 	def draw(self, context):
+		self.layout.prop(self, 'show_toggle_buttons')
 		row = self.layout.row()
 		row.prop(self, 'show_this_work_time')
 		row.prop(self, 'this_file_work_time')
@@ -194,6 +196,22 @@ def header_func(self, context):
 		row.menu(ThisFileWorkTimeMenu.bl_idname, icon='FILE_BLEND', text="  ThisFile " + GetTimeString(this_file_time))
 	if (pref.all_work_time):
 		row.menu(AllWorkTimeMenu.bl_idname, icon='BLENDER', text="  AllWork " + GetTimeString(all_time))
+	
+	if (pref.show_toggle_buttons):
+		row = self.layout.row(align=True)
+		path = 'user_preferences.addons["' + __name__ + '"].preferences.'
+		if (pref.show_this_work_time):
+			row.operator('wm.context_toggle', icon='X', text="").data_path = path + 'show_this_work_time'
+		else:
+			row.operator('wm.context_toggle', icon='RESTRICT_VIEW_OFF', text="").data_path = path + 'show_this_work_time'
+		if (pref.this_file_work_time):
+			row.operator('wm.context_toggle', icon='X', text="").data_path = path + 'this_file_work_time'
+		else:
+			row.operator('wm.context_toggle', icon='RESTRICT_VIEW_OFF', text="").data_path = path + 'this_file_work_time'
+		if (pref.all_work_time):
+			row.operator('wm.context_toggle', icon='X', text="").data_path = path + 'all_work_time'
+		else:
+			row.operator('wm.context_toggle', icon='RESTRICT_VIEW_OFF', text="").data_path = path + 'all_work_time'
 	
 	config['ALL']['all'] = str(all_time)
 	config[blend_path]['all'] = str(this_file_time)
