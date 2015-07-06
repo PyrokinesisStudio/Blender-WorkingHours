@@ -69,20 +69,21 @@ def load_handler(scene):
 	ResetPreferences()
 
 def GetTimeString(raw_sec, is_minus=False):
-	sec = round(raw_sec)
+	sec = int(raw_sec)
 	if (sec == 0):
 		return "..."
 	minus = ""
 	if (is_minus):
 		minus = "-"
-	if (60 <= sec):
-		min = sec // 60
+	if (60 <= raw_sec):
+		sec = int( raw_sec % 60 )
+		min = int( raw_sec / 60 )
 		if (60 <= min):
-			hour = sec // 60 // 60
-			min = (sec // 60) % 60
-			sec = sec % 60
+			hour = int( raw_sec / 60 / 60 )
+			min = int( (raw_sec / 60) % 60 )
+			sec = int( raw_sec % 60 )
 			return minus + str(hour) + "h" + str(min) + "m" + str(sec) + "s"
-		sec = sec % 60
+		sec = int( raw_sec % 60 )
 		return minus + str(min) + "m" + str(sec) + "s"
 	return minus + str(sec) + "s"
 
