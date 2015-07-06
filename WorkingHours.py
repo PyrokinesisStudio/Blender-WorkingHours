@@ -76,13 +76,13 @@ def GetTimeString(raw_sec, is_minus=False):
 	if (is_minus):
 		minus = "-"
 	if (60 <= sec):
-		min = int(sec / 60)
+		min = sec // 60
 		if (60 <= min):
-			hour = int(sec / 60 / 60)
-			min = int((sec / 60) % 60)
-			sec = int(sec % 60)
+			hour = sec // 60 // 60
+			min = (sec // 60) % 60
+			sec = sec % 60
 			return minus + str(hour) + "h" + str(min) + "m" + str(sec) + "s"
-		sec = int(sec % 60)
+		sec = sec % 60
 		return minus + str(min) + "m" + str(sec) + "s"
 	return minus + str(sec) + "s"
 
