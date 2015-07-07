@@ -262,7 +262,7 @@ def header_func(self, context):
 	if (pref.show_this_work_time):
 		row.menu(ThisWorkTimeMenu.bl_idname, icon='TIME', text="  New " + GetTimeString(pref.ALL))
 	if (pref.show_day_time):
-		row.menu(DayTimeMenu.bl_idname, icon='FILE_BLEND', text="  Day " + GetTimeString(day_time))
+		row.menu(DayTimeMenu.bl_idname, icon='SORTTIME', text="  Day " + GetTimeString(day_time))
 	if (pref.show_this_file_work_time):
 		row.menu(ThisFileWorkTimeMenu.bl_idname, icon='FILE_BLEND', text="  File " + GetTimeString(this_file_time))
 	if (pref.show_all_work_time):
