@@ -66,7 +66,7 @@ def GetTime():
 
 def GetDayString():
 	reset_hour = bpy.context.user_preferences.addons[__name__].preferences.reset_hour
-	date = datetime.date.today() + datetime.timedelta(hours=reset_hour)
+	date = datetime.datetime.now() + datetime.timedelta(hours=reset_hour)
 	return date.strftime('%Y-%m-%d')
 
 @persistent
