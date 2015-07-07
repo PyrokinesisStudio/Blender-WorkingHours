@@ -1,4 +1,4 @@
-import bpy, os, time, configparser
+import bpy, os, time, datetime, configparser
 from bpy.app.handlers import persistent
 
 ############
@@ -64,6 +64,11 @@ def GetBlendPathSection():
 def GetTime():
 	return time.perf_counter()
 
+def GetDayString():
+	reset_hour = bpy.context.user_preferences.addons[__name__].preferences.reset_hour
+	date = datetime.date.today() + datetime.timedelta(hours=reset_hour)
+	return date.strftime('%Y-%m-%d')
+
 @persistent
 def load_handler(scene):
 	ResetPreferences()
@@ -94,12 +99,14 @@ def GetTimeString(raw_sec, is_minus=False):
 class AddonPreferences(bpy.types.AddonPreferences):
 	bl_idname = __name__
 	
-	ignore_time_interval = bpy.props.FloatProperty(name="Ignore Time Interval (Second)", default=60, min=1, max=9999, soft_min=1, soft_max=9999)
+	ignore_time_interval = bpy.props.FloatProperty(name="AFK Interval (Second)", default=60, min=1, max=9999, soft_min=1, soft_max=9999)
+	reset_hour = bpy.props.IntProperty(name="Day Reset Hour", default=4, min=0, max=24, soft_min=0, soft_max=24)
 	
 	show_toggle_buttons = bpy.props.BoolProperty(name="Expand Buttons", default=False)
+	show_day_time = bpy.props.BoolProperty(name="Show Day Time", default=True)
 	show_this_work_time = bpy.props.BoolProperty(name="Show New Time", default=True)
-	this_file_work_time = bpy.props.BoolProperty(name="Show File Time", default=True)
-	all_work_time = bpy.props.BoolProperty(name="Show All Time", default=True)
+	show_this_file_work_time = bpy.props.BoolProperty(name="Show File Time", default=True)
+	show_all_work_time = bpy.props.BoolProperty(name="Show All Time", default=True)
 	
 	pre_time = bpy.props.FloatProperty(default=0.0)
 	ALL = bpy.props.FloatProperty(default=0.0)
@@ -122,9 +129,11 @@ class AddonPreferences(bpy.types.AddonPreferences):
 	def draw(self, context):
 		self.layout.prop(self, 'show_toggle_buttons')
 		row = self.layout.row()
-		for value_name in ['show_this_work_time', 'this_file_work_time', 'all_work_time']:
+		for value_name in ['show_this_work_time', 'show_this_file_work_time', 'show_all_work_time']:
 			row.prop(self, value_name)
-		self.layout.prop(self, 'ignore_time_interval')
+		row = self.layout.row()
+		row.prop(self, 'ignore_time_interval')
+		row.prop(self, 'reset_hour')
 
 ############
 # OPERATOR #
@@ -163,6 +172,21 @@ class ThisWorkTimeMenu(bpy.types.Menu):
 		self.layout.separator()
 		self.layout.label(GetTimeString(GetTime() - pref.ALL, is_minus=True), icon='CANCEL')
 
+class DayTimeMenu(bpy.types.Menu):
+	bl_idname = 'INFO_HT_header_day_time'
+	bl_label = ""
+	
+	def draw(self, context):
+		global MODE_NAMES_AND_ICONS
+		config = GetConfig()
+		day_str = GetDayString()
+		text = GetTimeString(float(config.get(day_str, 'all', fallback='0.0')))
+		self.layout.label(text, icon='TIME')
+		self.layout.separator()
+		for mode, icon in MODE_NAMES_AND_ICONS:
+			text = GetTimeString(float(config.get(day_str, mode, fallback='0.0')))
+			self.layout.label(text, icon=icon)
+
 class ThisFileWorkTimeMenu(bpy.types.Menu):
 	bl_idname = 'INFO_HT_header_this_file_work_time'
 	bl_label = ""
@@ -199,25 +223,33 @@ def header_func(self, context):
 	pref = context.user_preferences.addons[__name__].preferences
 	config = GetConfig()
 	blend_path = GetBlendPathSection()
+	day_str = GetDayString()
 	
 	if (blend_path not in config):
 		config[blend_path] = {}
 	if ('ALL' not in config):
 		config['ALL'] = {}
+	if (day_str not in config):
+		config[day_str] = {}
 	
 	time_diff = GetTime() - pref.pre_time
 	if (time_diff < 0.0):
 		time_diff, pref.ALL = 0.0, 0.0
 	
 	all_time = float(config.get('ALL', 'all', fallback='0.0'))
+	day_time = float(config.get(day_str, 'all', fallback='0.0'))
 	this_file_time = float(config.get(blend_path, 'all', fallback='0.0'))
 	if (time_diff < pref.ignore_time_interval):
 		pref.ALL += time_diff
+		day_time += time_diff
 		this_file_time += time_diff
 		all_time += time_diff
 		
 		time_mode = pref.__getattribute__(context.mode)
 		pref.__setattr__(context.mode, time_mode + time_diff)
+		
+		time_mode = float(config.get(day_str, context.mode, fallback='0.0'))
+		config[day_str][context.mode] = str(time_mode + time_diff)
 		
 		time_mode = float(config.get(blend_path, context.mode, fallback='0.0'))
 		config[blend_path][context.mode] = str(time_mode + time_diff)
@@ -229,15 +261,17 @@ def header_func(self, context):
 	row = self.layout.row(align=True)
 	if (pref.show_this_work_time):
 		row.menu(ThisWorkTimeMenu.bl_idname, icon='TIME', text="  New " + GetTimeString(pref.ALL))
-	if (pref.this_file_work_time):
+	if (pref.show_day_time):
+		row.menu(DayTimeMenu.bl_idname, icon='FILE_BLEND', text="  Day " + GetTimeString(day_time))
+	if (pref.show_this_file_work_time):
 		row.menu(ThisFileWorkTimeMenu.bl_idname, icon='FILE_BLEND', text="  File " + GetTimeString(this_file_time))
-	if (pref.all_work_time):
+	if (pref.show_all_work_time):
 		row.menu(AllWorkTimeMenu.bl_idname, icon='BLENDER', text="  All " + GetTimeString(all_time))
 	
 	row = self.layout.row(align=True)
 	path = 'user_preferences.addons["' + __name__ + '"].preferences.'
 	if (pref.show_toggle_buttons):
-		for value_name in ['show_this_work_time', 'this_file_work_time', 'all_work_time']:
+		for value_name in ['show_this_work_time', 'show_day_time', 'show_this_file_work_time', 'show_all_work_time']:
 			if (pref.__getattribute__(value_name)):
 				row.operator('wm.context_toggle', icon='X', text="").data_path = path + value_name
 			else:
@@ -249,6 +283,7 @@ def header_func(self, context):
 		row.operator('wm.context_toggle', icon='ARROW_LEFTRIGHT', text="").data_path = path + 'show_toggle_buttons'
 	
 	config['ALL']['all'] = str(all_time)
+	config[day_str]['all'] = str(day_time)
 	config[blend_path]['all'] = str(this_file_time)
 	with open(GetIniPath(), 'w') as file:
 		config.write(file)
