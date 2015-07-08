@@ -1,4 +1,4 @@
-import bpy, os, time, datetime, configparser
+import bpy, os, re, time, datetime, configparser
 from bpy.app.handlers import persistent
 
 ############
@@ -57,7 +57,7 @@ def GetConfig():
 	return config
 
 def GetBlendPathSection():
-	if (bpy.data.filepath == ""):
+	if bpy.data.filepath == "":
 		return 'NoFile'
 	return bpy.data.filepath
 
@@ -69,21 +69,25 @@ def GetDayString():
 	date = datetime.datetime.now() - datetime.timedelta(hours=reset_hour)
 	return date.strftime('%Y-%m-%d')
 
+def GetDayStringCustomDay(day):
+	date = datetime.date.today() + datetime.timedelta(day)
+	return date.strftime('%Y-%m-%d')
+
 @persistent
 def load_handler(scene):
 	ResetPreferences()
 
 def GetTimeString(raw_sec, is_minus=False):
 	sec = int(raw_sec)
-	if (sec == 0):
+	if sec == 0:
 		return "..."
 	minus = ""
-	if (is_minus):
+	if is_minus:
 		minus = "-"
-	if (60 <= raw_sec):
+	if 60 <= raw_sec:
 		sec = int( raw_sec % 60 )
 		min = int( raw_sec / 60 )
-		if (60 <= min):
+		if 60 <= min:
 			hour = int( raw_sec / 60 / 60 )
 			min = int( (raw_sec / 60) % 60 )
 			sec = int( raw_sec % 60 )
@@ -186,6 +190,45 @@ class DayTimeMenu(bpy.types.Menu):
 		for mode, icon in MODE_NAMES_AND_ICONS:
 			text = GetTimeString(float(config.get(day_str, mode, fallback='0.0')))
 			self.layout.label(text, icon=icon)
+		self.layout.separator()
+		self.layout.menu(DayTimeSubMenu.bl_idname, icon='ZOOM_ALL')
+
+class DayTimeSubMenu(bpy.types.Menu):
+	bl_idname = 'INFO_HT_header_day_time_sub'
+	bl_label = "Details"
+	
+	def draw(self, context):
+		config = GetConfig()
+		
+		day = GetDayStringCustomDay(-1)
+		time = float(config.get(day, 'all', fallback='0.0'))
+		text = "Yesterday: " + GetTimeString(time)
+		self.layout.label(text, icon='TIME')
+		
+		total = 0.0
+		for i in range(0, -7, -1):
+			day = GetDayStringCustomDay(i)
+			total += float(config.get(day, 'all', fallback='0.0'))
+		text = "Week Total: " + GetTimeString(total)
+		self.layout.label(text, icon='TIME')
+		
+		total = 0.0
+		for i in range(0, -30, -1):
+			day = GetDayStringCustomDay(i)
+			total += float(config.get(day, 'all', fallback='0.0'))
+		text = "Month Total: " + GetTimeString(total)
+		self.layout.label(text, icon='TIME')
+		
+		self.layout.separator()
+		
+		total, count = 0.0, 0
+		for sec_name in config.sections():
+			if re.search(r'\d{4}-\d{2}-\d{2}', sec_name):
+				total += float(config.get(sec_name, 'all', fallback='0.0'))
+				count += 1
+		average = total / count
+		text = GetTimeString(average) + " /day"
+		self.layout.label(text, icon='TIME')
 
 class ThisFileWorkTimeMenu(bpy.types.Menu):
 	bl_idname = 'INFO_HT_header_this_file_work_time'
@@ -225,21 +268,21 @@ def header_func(self, context):
 	blend_path = GetBlendPathSection()
 	day_str = GetDayString()
 	
-	if (blend_path not in config):
+	if blend_path not in config:
 		config[blend_path] = {}
-	if ('ALL' not in config):
+	if 'ALL' not in config:
 		config['ALL'] = {}
-	if (day_str not in config):
+	if day_str not in config:
 		config[day_str] = {}
 	
 	time_diff = GetTime() - pref.pre_time
-	if (time_diff < 0.0):
+	if time_diff < 0.0:
 		time_diff, pref.ALL = 0.0, 0.0
 	
 	all_time = float(config.get('ALL', 'all', fallback='0.0'))
 	day_time = float(config.get(day_str, 'all', fallback='0.0'))
 	this_file_time = float(config.get(blend_path, 'all', fallback='0.0'))
-	if (time_diff < pref.ignore_time_interval):
+	if time_diff < pref.ignore_time_interval:
 		pref.ALL += time_diff
 		day_time += time_diff
 		this_file_time += time_diff
@@ -259,20 +302,20 @@ def header_func(self, context):
 	pref.pre_time = GetTime()
 	
 	row = self.layout.row(align=True)
-	if (pref.show_this_work_time):
+	if pref.show_this_work_time:
 		row.menu(ThisWorkTimeMenu.bl_idname, icon='TIME', text="  New " + GetTimeString(pref.ALL))
-	if (pref.show_day_time):
+	if pref.show_day_time:
 		row.menu(DayTimeMenu.bl_idname, icon='SORTTIME', text="  Day " + GetTimeString(day_time))
-	if (pref.show_this_file_work_time):
+	if pref.show_this_file_work_time:
 		row.menu(ThisFileWorkTimeMenu.bl_idname, icon='FILE_BLEND', text="  File " + GetTimeString(this_file_time))
-	if (pref.show_all_work_time):
+	if pref.show_all_work_time:
 		row.menu(AllWorkTimeMenu.bl_idname, icon='BLENDER', text="  All " + GetTimeString(all_time))
 	
 	row = self.layout.row(align=True)
 	path = 'user_preferences.addons["' + __name__ + '"].preferences.'
-	if (pref.show_toggle_buttons):
+	if pref.show_toggle_buttons:
 		for value_name in ['show_this_work_time', 'show_day_time', 'show_this_file_work_time', 'show_all_work_time']:
-			if (pref.__getattribute__(value_name)):
+			if pref.__getattribute__(value_name):
 				row.operator('wm.context_toggle', icon='X', text="").data_path = path + value_name
 			else:
 				row.operator('wm.context_toggle', icon='RESTRICT_VIEW_OFF', text="").data_path = path + value_name
