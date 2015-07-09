@@ -203,21 +203,21 @@ class DayTimeSubMenu(bpy.types.Menu):
 		day = GetDayStringCustomDay(-1)
 		time = float(config.get(day, 'all', fallback='0.0'))
 		text = "Yesterday: " + GetTimeString(time)
-		self.layout.label(text, icon='TIME')
+		self.layout.label(text, icon='RECOVER_LAST')
 		
 		total = 0.0
 		for i in range(0, -7, -1):
 			day = GetDayStringCustomDay(i)
 			total += float(config.get(day, 'all', fallback='0.0'))
 		text = "Week Total: " + GetTimeString(total)
-		self.layout.label(text, icon='TIME')
+		self.layout.label(text, icon='OOPS')
 		
 		total = 0.0
 		for i in range(0, -30, -1):
 			day = GetDayStringCustomDay(i)
 			total += float(config.get(day, 'all', fallback='0.0'))
 		text = "Month Total: " + GetTimeString(total)
-		self.layout.label(text, icon='TIME')
+		self.layout.label(text, icon='SORTTIME')
 		
 		self.layout.separator()
 		
@@ -228,7 +228,7 @@ class DayTimeSubMenu(bpy.types.Menu):
 				count += 1
 		average = total / count
 		text = GetTimeString(average) + " /day"
-		self.layout.label(text, icon='TIME')
+		self.layout.label(text, icon='GROUP_VERTEX')
 
 class ThisFileWorkTimeMenu(bpy.types.Menu):
 	bl_idname = 'INFO_HT_header_this_file_work_time'
